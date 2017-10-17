@@ -1,0 +1,182 @@
+#!/bin/bash
+
+############################################################
+#                                                          #
+# TaskWarrior Framework                                    #
+#                                                          #
+# Shell functions to support task_project and task_context #
+#                                                          #
+############################################################
+
+
+
+# Get the project for a specified task
+get_project () {
+	local task_id=$1
+	local project_name="$(task _get $task_id.project)"
+	echo $project_name
+}
+
+
+# Get the tags assigned to a task
+get_tags () {
+	local task_id=$1
+	local tags="$(task _get $task_id.tags)"
+	echo $tags
+}
+
+
+# Strip a tag fromm a tag list
+strip_tag () {
+	local tag_string=$1
+	local tag_to_strip=$2
+	local new_tag_string=$(echo $tag_string | awk -v OFS=',' '{sub("'$tag_to_strip'",""); gsub(/\,+/," "); $1=$1; print $0}')
+	echo $new_tag_string
+}
+
+
+# Check if a task is tagged as a project definition
+check_project () {
+	local task_id=$1
+	local task_tags="$(task _get $task_id.tags)"
+
+	# Is the task marked with the +definition tag
+	if [[ $task_tags =~ .*definition.* ]];
+	then
+		echo 0
+	else
+		echo 1
+	fi
+}
+
+
+check_project_name () {
+	local project_name=$1
+	local exists="$(task projects | grep $project_name)"
+	if [ ${#exists} -gt 0 ]; then
+		echo 1
+	else
+		echo 0
+	fi
+}
+	
+check_context () {
+	local task_id=$1
+	local task_tags="$(task _get $task_id.tags)"
+
+	# Is the task marked with the +context tag
+	if [[ $task_tags =~ .*context.* ]];
+	then 
+		echo 0
+	else
+		echo 1
+	fi
+}
+
+check_context_name () {
+	local context_name=$1
+	local exists="$(task context rc.verbose=nothing | awk '{print $1}' | grep $context_name)"
+
+	if [ ${#exists} -gt 0 ]; then
+		echo 1
+	else
+		echo 0
+	fi
+}
+
+
+# Invoke taskwarrior report showing all project definitions
+print_projects () {
+	task ProjDef
+}
+
+print_contexts () {
+	task ContextDesc
+}
+
+# Invoke taskwarrior report showing 
+get_project_tasks () {
+	local project_name=$1
+	task ProjDetails project == $project_name
+}
+
+get_context_tasks () {
+	local context_name=$1
+	task rc.context=$context_name ContextTasks  
+}
+
+get_context_filter () {
+	local context_name=$1
+	task _get.context.$context_name
+}
+
+# Create a new task as part of a project, optionally copying tags from
+# definition task
+add_task_to_project () {
+	# Get the passed project ID
+	local project_id=$1
+	shift
+
+	# Read the option of copying tags
+	local clone_tags=$1
+	shift
+
+	# Get the task description
+	local task_description="$*"
+
+	local project_name=$(get_project $project_id)
+	local args="$task_description proj:$project_name"
+
+	# Read the tasks from the project definition, stripping the +definition
+	# tag
+	if [ $clone_tags -eq 1 ]; then
+		local tags="$(task _get $project_id.tags)"
+		local tags1="$(eval strip_tag $tags definition)"
+		args="$args tag:$tags1"
+	fi
+
+	task add $args
+}
+
+
+mv_task_to_project () {
+	# Move an exisiting task into an existing project
+	local project_id=$1
+	shift
+
+	local task_id=$1
+	shift
+
+	local project_name=$(get_project $project_id)
+
+	task $task_id mod proj:$project_name
+}
+
+drop_task_from_project () {
+	# Remove an existing task from its project
+	# N.B. that the task is not deleted
+	local project_id=$1
+	shift
+
+	local task_id=$1
+	shift
+
+	local project_name=$(get_project $project_id)
+	local task_project=$(get_project $task_id)
+
+	if [ "$project_name" == "$task_project" ]; then
+		task $task_id mod proj:
+		return 0
+	else
+		echo "Selected task does not match the referenced project ID"
+		return 1
+	fi
+}
+
+create_project () {
+	local project_name=$1
+	shift
+
+	task add $* proj:$project_name +definition
+}
+

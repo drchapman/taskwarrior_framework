@@ -1,0 +1,99 @@
+# [Created by task 2.3.0 1/30/2017 01:19:59]
+# Taskwarrior program configuration file.
+# For more documentation, see http://taskwarrior.org or try 'man task', 'man task-faq',
+# 'man task-tutorial', 'man task-color', 'man task-sync' or 'man taskrc'
+
+# Here is an example of entries that use the default, override and blank values
+#   variable=foo   -- By specifying a value, this overrides the default
+#   variable=      -- By specifying no value, this means no default
+#   #variable=foo  -- By commenting out the line, or deleting it, this uses the default
+
+# Use the command 'task show' to see all defaults and overrides
+
+# Files
+data.location=~/.task
+
+# Color theme (uncomment one to use)
+#include /usr/share/taskwarrior/light-16.theme
+#include /usr/share/task/light-256.theme
+#include /usr/share/task/dark-256.theme
+#include /usr/share/taskwarrior/dark-16.theme
+#include /usr/share/taskwarrior/dark-256.theme
+#include /usr/share/taskwarrior/dark-red-256.theme
+#include /usr/share/taskwarrior/dark-green-256.theme
+#include /usr/share/taskwarrior/dark-blue-256.theme
+#include /usr/share/taskwarrior/dark-violets-256.theme
+#include /usr/share/taskwarrior/dark-yellow-green.theme
+#include /usr/share/taskwarrior/dark-gray-256.theme
+#include /usr/share/taskwarrior/no-color.theme
+include ~/Test/taskwarrior/no-color.theme
+
+uda.reviewed.type=date
+uda.reviewed.label=Reviewed
+report._reviewed.description=Tasksh review report.  Adjust the filter to your needs.
+report._reviewed.columns=uuid
+report._reviewed.sort=reviewed+,modified+
+report._reviewed.filter=( reviewed.none: or reviewed.before:now-1week ) and ( +PENDING or +WAITING )
+
+#Matrix Reports
+#report.q1.description=Q1  Do Now
+#report.q1.filter=dep: pri:H ready due.before:7d
+#report.q1.sort=due+
+#report.q1.columns=id,description,due
+
+#context.default=project.not:Ideas
+#context.ideas=project:Ideas
+#context.default=tag.not:idea
+#context.ideas=tag:idea
+#context=default
+
+
+report.q1.description=Q1: Do Now report
+report.q1.filter=pri:H status:pending due.before:7d +READY -definition
+report.q1.columns=id,entry.age,project,due.relative,description.count,estimate,tags
+report.q1.sort=due+
+
+
+report.q2.description=Q2: Plan Report
+report.q2.filter=pri:H status:pending ( due.after:7d or due.none: ) +READY -definition
+report.q2.columns=id,entry.age,project,due.relative,description.count,estimate,tags
+report.q2.sort=project
+
+report.q3.description=Q3: Delegate Report
+report.q3.filter=pri:L status:pending due.before:7d +READY -definition
+report.q3.columns=id,entry.age,project,due.relative,description.count,estimate,tags
+report.q3.sort=due+
+
+report.q4.description=Q4: Dump Report
+report.q4.filter=pri:L status:pending ( due.after:7d or due.none: ) +READY -definition
+report.q4.columns=id,entry.age,project,due.relative,description.count,estimate,tags
+report.q4.sort=due+
+
+#verbose=yes
+uda.estimate.type=numeric
+uda.estimate.label=Est
+
+report.defs.description=Show Project Definitions
+report.defs.filter=status:pending +definition
+report.defs.columns=id,project,description.count,tags
+report.defs.sort=project
+
+report.ProjDef.description=Manage Projects and Project Definitions
+report.ProjDef.filter=status:pending +definition
+report.ProjDef.columns=id,project,description.count,tags
+report.ProjDef.sort=project
+
+report.ProjDetails.description=Display the constituent tasks of a project
+report.ProjDetails.filter=status:pending -definition
+report.ProjDetails.columns=id,entry.age,due.relative,description.count,tags
+report.ProjDetails.sort=due+,urgency
+
+report.ContextDesc.description=Show currently defined Contexts
+report.ContextDesc.filter=status:pending +context
+report.ContextDesc.columns=id,project,description.count
+report.ContextDesc.sort=project
+
+report.ContextTasks.description=Display the constituent tasks of a context
+report.ContextTasks.filter=status:pending -definition
+report.ContextTasks.columns=id,entry.age,due.relative,project,description.count,tags
+report.ContextTasks.sort=due+,urgency

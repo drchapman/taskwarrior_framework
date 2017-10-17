@@ -1,0 +1,99 @@
+#!/bin/bash
+
+source twfw
+
+print_help () {
+	echo "This is task_project"
+}
+
+
+
+if [ $# -lt 1 ]; then
+	# If there are no arguments print summary of current projects
+	print_projects
+
+elif [ $# -eq 1 ]; then
+	# Single argument: Either invoke Help or display a Project's tasks
+
+	arg=$1
+
+	if [ "$arg" == "-h" ]; then
+		# Print the help string
+		print_help
+	fi
+
+	if [[ $arg =~ ^[0-9]+$ ]]; then
+		# Print the tasks which are a part of a project
+		project_id=$(get_project $arg)
+
+		# TODO Check for empty projects
+		get_project_tasks $project_id
+	else
+		# TODO Handle project name strings
+		echo "Please provide a valid project number"
+		# Error Code 2: Non-numeric project passed
+		exit 2
+	fi
+
+elif [[ $1 =~ ^[0-9]+$ ]]; then
+	# Project-specific commands
+	project_id=$1
+
+	# Check that this a valid project
+	id_is_project=$(check_project $project_id)
+	if [ $id_is_project -eq 1 ]; then
+		echo "Please provide a valid project number"
+		exit 2
+	fi
+	shift
+
+	command=$1
+	case $command in
+		"mv")	task_id=$2
+			mv_task_to_project $project_id $task_id
+			;;
+
+		"drop")	task_id=$2
+			drop_task_from_project $project_id $task_id
+			;;
+
+		"add")	shift
+			if [ "$1" == "+" ]; then
+				copy_tags=1
+				shift
+			else
+				copy_tags=0
+			fi
+			if [ $# -lt 1 ]; then
+				echo "Please provide a task description"
+				# Error Code 3: No task dscription provided
+				exit 3
+			else
+				add_task_to_project $project_id $copy_tags $*
+			fi
+			;;
+		*)	echo "Unknown command: '$command'"
+			# Error Code 4: Unknown command
+			exit 4
+			;;
+	esac
+
+elif [ $1 == "new" ]; then
+	shift
+	project_name=$1
+	does_name_exist="$(check_project_name $project_name)"
+
+	if [ $does_name_exist -eq 1 ]; then
+		echo "Error: Specified project name already exists"
+		# Error Code 5: Trying to create a duplicate project name
+		exit 5
+	fi
+
+	shift
+
+	create_project $project_name $*
+
+else
+	echo "Unrecognised option"
+	exit 6
+fi

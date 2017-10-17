@@ -1,0 +1,80 @@
+#!/bin/bash
+
+task_note_rc=~/.config/task_note/task_note.rc
+
+source $task_note_rc
+
+# TODO: Create documentation and handle options accordingly
+# task_note -h|ID [edit]
+
+
+### Variables ###
+task_id=$1
+
+if [ "$2" == "edit" ]; then
+	edit=1
+else
+	edit=0
+fi
+
+task_uuid=$(task $task_id uuids)
+task_desc="$(task $task_id export rc.json.array=off 2> /dev/null | jq -r '[.description]| .[]')"
+notefile=$note_dir/$task_uuid.wiki
+date_string="$(date +'%Y/%m/%d - %H:%M:%S')"
+
+### Functions ###
+header () {
+# Generates a header for a new note file
+cat <<EOF
+= $task_desc =
+%% $task_uuid
+EOF
+}
+
+new_date () {
+# Appends a datestamp to the end of a notefile
+cat <<EOF
+
+== $(date +'%Y/%m/%d | %H:%M:%S') ==
+
+EOF
+}
+
+# Append to notes index page
+index_entry () {
+	echo "[[$task_uuid]] - $task_desc" >> $note_index
+}
+
+### Main Logic ###
+
+if [ -s $notefile ]; then
+	# Notefile already exists
+	if [ $edit -lt 1 ]; then
+		# Open exisiting notes READONLY without _edit_ command
+		vim -R '+normal zR' $notefile
+		exit 0
+	fi
+	cp $notefile $temp_file1
+	new=0
+else
+	# Notefile does not exist: Create new contents
+	header > $temp_file1
+	new=1
+fi
+
+new_date >> $temp_file1 # Append current date stamp
+
+touch $temp_file2
+
+vim '+normal zRG' $temp_file1
+
+if [ $temp_file1 -nt $temp_file2 ]; then
+	# Timestamp has been updated
+	cp $temp_file1 $notefile
+	if [ $new -eq 1 ]; then
+		task $task_id annotate "Notes: $notefile"
+		index_entry
+	fi
+fi
+rm $temp_file1 $temp_file2
+

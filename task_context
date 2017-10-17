@@ -1,0 +1,74 @@
+#!/bin/bash
+
+source twfw
+
+print_help () {
+	echo "This is task_context"
+}
+
+
+if [ $# -lt 1 ]; then
+	# If there are not arguments print the list of defined contexts
+	print_contexts
+
+elif [ $# -eq 1 ]; then
+
+	arg=$1
+
+	if [ "$arg" == "-h" ]; then
+		# Print the help string
+		print_help
+
+	elif [[ $arg =~ ^[0-9]+$ ]]; then
+		# Print the tasks availabe in the selected context 
+		context_name=$(get_project $arg)
+
+		get_context_tasks $context_name
+
+	else
+		echo "Please provide a valid context number"
+		exit 2
+	fi
+
+elif [ "$1" == "new" ]; then
+	shift
+	context_name=$1
+	does_context_exist="$(check_context_name $context_name)"
+
+	if [ $does_context_exist -eq 1 ]; then
+		echo "Error: Specified project name already exists"
+		exit 5
+	fi
+
+	shift
+
+	args="$*"
+
+	context_description="$(echo $args | awk -F '-f ' '{print $1}')"
+	context_filter="$(echo $args | awk -F '-f ' '{print $2}')"
+
+	task add "$context_description" proj:"@${context_name}" +context
+
+	task context define "@${context_name}" "$context_filter" rc.confirmation=off
+
+elif [ "$1" == "rm" ]; then
+	shift
+	
+	context_id=$1
+	is_this_a_context=$(check_context $context_id)
+
+	if [ $is_this_a_context -eq 0 ]; then
+		context_name="$(get_project $context_id)"
+
+		task $context_id rm
+
+		if [ $? -eq 0 ]; then
+			task context delete $context_name rc.confirmation=off
+		fi
+	else
+		echo "Selected task is not a Context definition"
+	fi
+else
+	echo "Unrecognised option"
+	exit 6
+fi
