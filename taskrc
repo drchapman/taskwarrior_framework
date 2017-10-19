@@ -80,20 +80,20 @@ report.defs.sort=project
 
 report.ProjDef.description=Manage Projects and Project Definitions
 report.ProjDef.filter=status:pending +definition
-report.ProjDef.columns=id,project,description.count,tags
+report.ProjDef.columns=id,project,description.count,due.relative,tags
 report.ProjDef.sort=project
 
 report.ProjDetails.description=Display the constituent tasks of a project
 report.ProjDetails.filter=status:pending -definition
-report.ProjDetails.columns=id,entry.age,due.relative,description.count,tags
+report.ProjDetails.columns=id,entry.age,due.relative,description.count,tags,urgency
 report.ProjDetails.sort=due+,urgency
 
 report.ContextDesc.description=Show currently defined Contexts
 report.ContextDesc.filter=status:pending +context
-report.ContextDesc.columns=id,project,description.count
-report.ContextDesc.sort=project
+report.ContextDesc.columns=id,project,due.relative,description.count,urgency
+report.ContextDesc.sort=project,due+,urgency
 
 report.ContextTasks.description=Display the constituent tasks of a context
 report.ContextTasks.filter=status:pending -definition
-report.ContextTasks.columns=id,entry.age,due.relative,project,description.count,tags
+report.ContextTasks.columns=id,entry.age,due.relative,project,description.count,tags,urgency
 report.ContextTasks.sort=due+,urgency
