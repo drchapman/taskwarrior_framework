@@ -48,26 +48,26 @@ report._reviewed.filter=( reviewed.none: or reviewed.before:now-1week ) and ( +P
 #context=default
 
 
-report.q1.description=Q1: Do Now report
-report.q1.filter=pri:H status:pending due.before:7d +READY -definition
-report.q1.columns=id,entry.age,project,due.relative,description.count,estimate,tags
-report.q1.sort=due+
+report.today.description=Tasks due today
+report.today.filter=status:pending due:today +READY -definition -context
+report.today.columns=id,entry.age,project,due.relative,description.count,estimate,tags
+report.today.sort=due+
 
 
-report.q2.description=Q2: Plan Report
-report.q2.filter=pri:H status:pending ( due.after:7d or due.none: ) +READY -definition
-report.q2.columns=id,entry.age,project,due.relative,description.count,estimate,tags
-report.q2.sort=project
+report.tomorrow.description=Tasks due tomorrow
+report.tomorrow.filter=status:pending ( due:tomorrow ) +READY -definition -context
+report.tomorrow.columns=id,entry.age,project,due.relative,description.count,estimate,tags
+report.tomorrow.sort=due+,project
 
-report.q3.description=Q3: Delegate Report
-report.q3.filter=pri:L status:pending due.before:7d +READY -definition
-report.q3.columns=id,entry.age,project,due.relative,description.count,estimate,tags
-report.q3.sort=due+
+report.week.description=Task due this week
+report.week.filter=status:pending due.after:tomorrow due.before:7d +READY -definition -context
+report.week.columns=id,entry.age,project,due.relative,description.count,estimate,tags
+report.week.sort=due+
 
-report.q4.description=Q4: Dump Report
-report.q4.filter=pri:L status:pending ( due.after:7d or due.none: ) +READY -definition
-report.q4.columns=id,entry.age,project,due.relative,description.count,estimate,tags
-report.q4.sort=due+
+report.pri.description=Tasks marked as Next Up
+report.pri.filter=status:pending +READY -definition -context +next
+report.pri.columns=id,entry.age,project,due.relative,description.count,estimate,tags
+report.pri.sort=due+
 
 #verbose=yes
 uda.estimate.type=numeric

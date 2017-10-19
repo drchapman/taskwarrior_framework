@@ -1,0 +1,46 @@
+#!/bin/bash
+
+task_id=$1
+
+source twfw
+
+print_help () {
+	echo "This is task_next"
+}
+
+if [ $# -lt 1 ]; then
+	task pri
+
+elif [ $1 == "-h" ]; then
+	print_help
+
+elif [[ $1 =~ [0-9]+$ ]]; then
+	task_id=$1
+
+	id_is_project=$(check_project $task_id)
+	if [ $id_is_project -eq 0 ]; then
+		echo "A project cannot be assigned +next tag"
+		exit 2
+	fi
+
+	id_is_context=$(check_context $task_id)
+	if [ $id_is_context -eq 0 ]; then
+		echo "A context cannot be assigned +next tag"
+		exit 2
+	fi
+
+	project_name=$(get_project $task_id)
+	if [ ${#project_name} -eq 0 ]; then
+		echo "Only project sub-tasks should be assigned +next tag"
+		exit 3
+	fi
+
+	existing_task="$(task proj:$project_name +next rc.verbose=nothing | wc -l)"
+	if [ $existing_task -gt 0 ]; then
+		echo "Project $project_name has a +next task"
+	else
+		task $task_id mod +next
+	fi
+fi
+
+
