@@ -28,11 +28,24 @@ elif [ $# -eq 1 ]; then
 
 		# TODO Check for empty projects
 		get_project_tasks $project_id
+
 	else
-		# TODO Handle project name strings
-		echo "Please provide a valid project number"
-		# Error Code 2: Non-numeric project passed
-		exit 2
+		project_search="$(check_project_name $arg)"
+		#echo $project_search
+		count_matches="$(echo $project_search | awk -F ',' '{print $1}')"
+
+		#echo $count_matches
+		#exit
+		if [ "$count_matches" -gt 1 ]; then
+			print_projects $arg
+		elif [ "$count_matches" -eq 1 ]; then
+			get_project_tasks $arg 1
+		else
+			
+			echo "Please provide a valid project reference"
+			# Error Code 2: Non-numeric project passed
+			exit 2
+		fi
 	fi
 
 elif [[ $1 =~ ^[0-9]+$ ]]; then
@@ -81,7 +94,7 @@ elif [[ $1 =~ ^[0-9]+$ ]]; then
 elif [ $1 == "new" ]; then
 	shift
 	project_name=$1
-	does_name_exist="$(check_project_name $project_name)"
+	does_name_exist="$(check_project_name $project_name) | awk -F ',' '{print $2}'"
 
 	if [ $does_name_exist -eq 1 ]; then
 		echo "Error: Specified project name already exists"

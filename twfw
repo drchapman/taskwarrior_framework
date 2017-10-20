@@ -8,6 +8,7 @@
 #                                                          #
 ############################################################
 
+temp_project="$HOME/.task_project.tmp"
 
 
 # Get the project for a specified task
@@ -52,12 +53,19 @@ check_project () {
 
 check_project_name () {
 	local project_name=$1
-	local exists="$(task projects | grep $project_name)"
-	if [ ${#exists} -gt 0 ]; then
-		echo 1
+	#local exists="$(task projects | grep $project_name)"
+	task projects | grep ^$project_name |awk '{print $1}' > $temp_project
+
+	matches="$(cat $temp_project | wc -l)"
+	
+	exact="$(grep ^$project_name$ $temp_project)"
+				
+	if [ -n "$exact" ]; then
+		matches="$matches,1"
 	else
-		echo 0
+		matches="$matches,0"
 	fi
+	echo $matches
 }
 	
 check_context () {
@@ -87,7 +95,12 @@ check_context_name () {
 
 # Invoke taskwarrior report showing all project definitions
 print_projects () {
-	task ProjDef
+	if [ -n "$1" ]; then
+		local filter="proj:$1"
+	else
+		local filter=""
+	fi
+	task ProjDef $filter
 }
 
 print_contexts () {
@@ -97,7 +110,13 @@ print_contexts () {
 # Invoke taskwarrior report showing 
 get_project_tasks () {
 	local project_name=$1
-	task ProjDetails project == $project_name
+	local fuzzy=$2
+
+	if [[ -n $fuzzy && $fuzzy -eq 1 ]]; then
+		task ProjDetails project:$project_name
+	else
+		task ProjDetails project == $project_name
+	fi
 }
 
 get_context_tasks () {
