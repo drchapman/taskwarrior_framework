@@ -54,7 +54,7 @@ check_project () {
 check_project_name () {
 	local project_name=$1
 	#local exists="$(task projects | grep $project_name)"
-	task projects | grep ^$project_name |awk '{print $1}' > $temp_project
+	task _projects | grep ^$project_name |awk '{print $1}' > $temp_project
 
 	matches="$(cat $temp_project | wc -l)"
 	
@@ -100,7 +100,14 @@ print_projects () {
 	else
 		local filter=""
 	fi
-	task ProjDef $filter
+
+	if [ -n "$2" ]; then
+		local verbose="rc.verbose:label"
+	else
+		local verbose=""
+	fi
+
+	task ProjDef $filter $verbose
 }
 
 print_contexts () {
@@ -111,6 +118,8 @@ print_contexts () {
 get_project_tasks () {
 	local project_name=$1
 	local fuzzy=$2
+	echo
+	print_projects $project_name 1
 
 	if [[ -n $fuzzy && $fuzzy -eq 1 ]]; then
 		task ProjDetails project:$project_name
