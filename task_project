@@ -31,7 +31,7 @@ elif [ $# -eq 1 ]; then
 
 	else
 		project_search="$(check_project_name $arg)"
-		echo $project_search
+		#echo $project_search
 		count_matches="$(echo $project_search | awk -F ',' '{print $1}')"
 
 		#echo $count_matches
